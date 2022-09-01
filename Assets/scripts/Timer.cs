@@ -44,6 +44,7 @@ public class Timer : MonoBehaviour
         timeCount += Time.time;
         stopTimer = false;
         started = true;
+        finish = false;
     }
     public void resTime()
     {
@@ -72,5 +73,10 @@ public class Timer : MonoBehaviour
         imageBack.color = a;
         a.a = 1;
         imageFront.color = a;
+    }
+    public void stop()
+    {
+        started = false;
+        stopTimer = true;
     }
 }

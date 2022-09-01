@@ -13,6 +13,7 @@ public class Number : MonoBehaviour
     bool closed;
     Sequence myseq;
     Sequence waitSeq;
+    Sequence nearSeq;
     Vector2 origin;
     void Start()
     {
@@ -102,8 +103,21 @@ public class Number : MonoBehaviour
     {
         image.DOColor(new Color(1, 1, 1),.5f);
     }
-    public void returnOrigin()
+    public Vector2 returnOrigin()
     {
         num.DOLocalMove(origin, 0.5f).SetAutoKill();
+        return origin;
+    }
+    public void nearFade()
+    {
+        nearSeq = DOTween.Sequence();
+        nearSeq.Append(image.DOColor(Color.red, 1f).SetAutoKill());
+        nearSeq.Append(image.DOColor(new Color(1, 1, 1), 1f).SetAutoKill());
+        nearSeq.SetLoops(10);
+    }
+    public void killNearFade()
+    {
+        nearSeq.Kill(false);
+        image.DOColor(new Color(1, 1, 1), 0.5f).SetAutoKill();
     }
 }

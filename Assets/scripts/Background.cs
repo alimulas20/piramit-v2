@@ -78,5 +78,6 @@ public class Background : MonoBehaviour
         }
         for(int i=0;i<bgs.Length;i++)
         bgs[i].DOFade(0, 0.5f).SetAutoKill();
+        score.DOFade(0, 0.5f);
     }
 }

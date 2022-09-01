@@ -65,7 +65,8 @@ public class NumberScroll : MonoBehaviour
     }
    
     void lerpLeft(int position)
-    {
+    {   
+
         float newY = Mathf.Lerp(left.Pos().y, position, Time.deltaTime * 30f);
         Vector2 newPos = new Vector2(left.Pos().x, newY);
         left.setPos(newPos);
@@ -94,5 +95,10 @@ public class NumberScroll : MonoBehaviour
     {
         infinite = true;
         myScroll.movementType = ScrollRect.MovementType.Unrestricted;
+    }
+    public void setRestricted()
+    {
+        infinite = false;
+        myScroll.movementType = ScrollRect.MovementType.Elastic;
     }
 }

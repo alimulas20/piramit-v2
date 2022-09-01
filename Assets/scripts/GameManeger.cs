@@ -15,7 +15,11 @@ public class GameManeger : MonoBehaviour
     public Image[] clicker;
     public Background bg;
     public GameObject onay;
+    public Image win;
+    public Image lose;
     bool pickWaiter;
+    public Circle circle;
+    public Circle circle2;
     int level = 0;
     int[] values;
     int []ques;
@@ -23,7 +27,7 @@ public class GameManeger : MonoBehaviour
     int quesNumber;
     int type;
     int score;
-
+    Vector2 [] position;
     int scrollNumber=-1;
     bool start;
     
@@ -32,7 +36,9 @@ public class GameManeger : MonoBehaviour
     Sequence clickerSeq;
     int [] scrollTemp;
     float timer;
-    bool wrongAns;
+    //bool wrongAns;
+    int[,] near;
+    Vector2[,] circlePos;
 
     public bool timeless;
     bool finish;
@@ -81,7 +87,6 @@ public class GameManeger : MonoBehaviour
     
     public void pick()
     {
-        
         if (!pickStoper)
         {
             scrollNumber = -1;
@@ -92,6 +97,7 @@ public class GameManeger : MonoBehaviour
                 {
                     if (level != 0)
                     {
+                        winLoseFade(true);
                         slider.incTime();
                         bg.incBg();
                         score += level * 100;
@@ -104,6 +110,7 @@ public class GameManeger : MonoBehaviour
                     pickWaiter = true;
                     slider.decTime();
                     bg.decBg();
+                    winLoseFade(false);
                 }
             }else if (type==1)
             {
@@ -113,10 +120,13 @@ public class GameManeger : MonoBehaviour
                    
                     if (level != 1)
                     {
-                        wrongAns = true;
+                        //wrongAns = true;
+                        StopCoroutine(manage(3));
+                        winLoseFade(false);
                         slider.decTime();
                         bg.decBg();
                         pickWaiter = true;
+                        
                     }
                    
 
@@ -129,6 +139,7 @@ public class GameManeger : MonoBehaviour
                         slider.incTime();
                         bg.incBg();
                         score += level * 100;
+                        winLoseFade(true);
                     }
                     level++;
                     if (level == 16)
@@ -149,9 +160,11 @@ public class GameManeger : MonoBehaviour
                 {
                     if (level != 2)
                     {
-                        wrongAns = true;
+                        //wrongAns = true;
+                        StopCoroutine(manage(3));
                         slider.decTime();
                         bg.decBg();
+                        winLoseFade(false) ;
                     }
                    
                     pickWaiter = true;
@@ -162,6 +175,7 @@ public class GameManeger : MonoBehaviour
                 {
                     if (level != 2)
                     {
+                        winLoseFade(true);
                         slider.incTime();
                         bg.incBg();
                         score += level * 100;
@@ -171,6 +185,7 @@ public class GameManeger : MonoBehaviour
                     pickWaiter = true;
                 }
             }
+            
         }
 
     }
@@ -179,6 +194,7 @@ public class GameManeger : MonoBehaviour
         switch (level)
         {
             case 0:
+                slider.stop();
                 levelCreator(5, 5, false);
                 StartCoroutine(howToPlay(0));
                 break;
@@ -187,10 +203,8 @@ public class GameManeger : MonoBehaviour
                 StartCoroutine(howToPlay(2));
                 break;
             case 2:
-                levelCreator(5, 5, 5, 5);
-                StartCoroutine(howToPlay(5));
-                break;
-            case 3:
+                circle.killFade();
+                circle2.killFade();
                 left.setInfinite();
                 right.setInfinite();
                 left.release();
@@ -200,51 +214,51 @@ public class GameManeger : MonoBehaviour
                 levelCreator(5, 5, false);
                 StartCoroutine(manage(0));
                 break;
-            case 4:
+            case 3:
                 levelCreator(5, 5, 5, false);
                 StartCoroutine(manage(2));
                 break;
-            case 5:
+            case 4:
                 levelCreator(5, 5, 5, 5);
                 StartCoroutine(manage(5));
                 break;
-            case 6:
+            case 5:
                 levelCreator(10, 5, false);
                 StartCoroutine(manage(0));
                 break;
-            case 7:
+            case 6:
                 levelCreator(10, 5, 10, false);
                 StartCoroutine(manage(2));
                 break;
-            case 8:
+            case 7:
                 levelCreator(10, 5, 5, 10);
                 StartCoroutine(manage(5));
                 break;
-            case 9:
+            case 8:
                 levelCreator(10, 10, false);
                 StartCoroutine(manage(0));
                 break;
-            case 10:
+            case 9:
                 levelCreator(10, 10, 10, false);
                 StartCoroutine(manage(2));
                 break;
-            case 11:
+            case 10:
                 levelCreator(10, 10, 10, 10);
                 StartCoroutine(manage(5));
                 break;
-            case 12:
+            case 11:
                 levelCreator(20, 20, false);
                 StartCoroutine(manage(0));
                 break;
-            case 13:
+            case 12:
                 levelCreator(20, 20, 20, false);
                 StartCoroutine(manage(2));
                 break;
-            case 14:
+            case 13:
                 levelCreator(5, 5,true);
                 StartCoroutine(manage(0));
                 break;
-            case 15:
+            case 14:
                 ////////////////////////çýkarýlacak
                 left.setInfinite();
                 right.setInfinite();
@@ -264,8 +278,6 @@ public class GameManeger : MonoBehaviour
     IEnumerator manage(int quesCount)
     {
     
-      
-        
         for (int i = 0; i <= quesCount; i++)
         {
             pickStoper = true;
@@ -273,10 +285,12 @@ public class GameManeger : MonoBehaviour
             scrollNumber = -1;
             quesNumber = ques[i];
             numbers[ques[i]].selected();
+            
             setChange();
             setTimer();
             if (level < 6)
             {
+               
                 yield return new WaitWhile(() => !isChange() && !isTimeUp(2));
                 if (isTimeUp(2))
                 {
@@ -295,11 +309,12 @@ public class GameManeger : MonoBehaviour
             numbers[ques[i]].KillSelect();
             yield return new WaitWhile(() => !isPicked);
             isPicked = false;
-            if (wrongAns)
+            /*if (wrongAns)
             {
+                Debug.Log("abc");
                 wrongAns = false;
                 break;
-            }
+            }*/
             
         }
         
@@ -324,6 +339,7 @@ public class GameManeger : MonoBehaviour
             if (i > 0 && i < 3)
             {
                 numbers[i].setPosition(200 * (int)Mathf.Pow(-1, i), -275);
+                position[i] = new Vector2(200 * (int)Mathf.Pow(-1, i), -275);
             }
             if (i < 3)
             {
@@ -415,36 +431,36 @@ public class GameManeger : MonoBehaviour
         {
             for (int i = 0; i < ques.Length; i++)
                 ques[i] = 2 - i;
-            quesText[0] = concatOpe(4, 5, oper[0]);
-            quesText[1] = concatOpe(3, 4 , oper[0]);
-            quesText[2] = concatOpe(1, 2, oper[0]);
+            quesText[0] = concatOpe(4, 5, oper[0],0);
+            quesText[1] = concatOpe(3, 4 , oper[0],1);
+            quesText[2] = concatOpe(1, 2, oper[0],2);
         }
         else if (quesType == 1)
         {
             ques[0] = 1;
             ques[1] = 4;
             ques[2] = 3;
-            quesText[0] = concatOpe(0, 2, oper[1]);
-            quesText[1] = concatOpe(2, 5, oper[1]);
-            quesText[2] = concatOpe(1, 4, oper[1]);
+            quesText[0] = concatOpe(0, 2, oper[1],0);
+            quesText[1] = concatOpe(2, 5, oper[1],1);
+            quesText[2] = concatOpe(1, 4, oper[1],2);
         }
         else if (quesType == 2)
         {
             ques[0] = 2;
             ques[1] = 4;
             ques[2] = 5;
-            quesText[0] = concatOpe(0, 1, oper[1]);
-            quesText[1] = concatOpe(1, 3, oper[1]);
-            quesText[2] = concatOpe(2, 4, oper[1]);
+            quesText[0] = concatOpe(0, 1, oper[1], 0);
+            quesText[1] = concatOpe(1, 3, oper[1], 1);
+            quesText[2] = concatOpe(2, 4, oper[1], 2);
         }
         else
         {
             ques[0] = 0;
             ques[1] = 5;
             ques[2] = 3;
-            quesText[0] = concatOpe(1, 2, oper[0]);
-            quesText[1] = concatOpe(2, 4, oper[1]);
-            quesText[2] = concatOpe(1, 4, oper[1]);
+            quesText[0] = concatOpe(1, 2, oper[0], 0);
+            quesText[1] = concatOpe(2, 4, oper[1], 1);
+            quesText[2] = concatOpe(1, 4, oper[1], 2);
         }
         for(int i = 0; i < 3; i++)
         {
@@ -485,15 +501,15 @@ public class GameManeger : MonoBehaviour
             for(int i = 0; i < 6; i++)
             {
                 if (i ==0)
-                quesText[i] = concatOpe(0, 1, "-");
+                quesText[i] = concatOpe(0, 1, "-",i);
                 else if (i < 3)
                 {
-                    quesText[i] = concatOpe(i, i+2, "-");
+                    quesText[i] = concatOpe(i, i+2, "-",i);
 
                 }
                 else
                 {
-                    quesText[i] = concatOpe(i, i+3, "-");
+                    quesText[i] = concatOpe(i, i+3, "-",i);
                 }
             }
         }
@@ -508,15 +524,15 @@ public class GameManeger : MonoBehaviour
             for (int i = 0; i < 6; i++)
             {
                 if (i == 0)
-                    quesText[i] = concatOpe(i, 2, "-");
+                    quesText[i] = concatOpe(i, 2, "-",i);
                 else if (i < 3)
                 {
-                    quesText[i] = concatOpe(3-i, 6-i, "-");
+                    quesText[i] = concatOpe(3-i, 6-i, "-",i);
 
                 }
                 else
                 {
-                    quesText[i] = concatOpe(8-i, 12-i, "-");
+                    quesText[i] = concatOpe(8-i, 12-i, "-",i);
                 }
             }
         }
@@ -575,15 +591,32 @@ public class GameManeger : MonoBehaviour
         
         for(int i = 0; i <= quesCount; i++)
         {
+            circle.killFade();
+            circle2.killFade();
             pickStoper = true;
             stopFade(1);
             isPicked = false;
             if (level == 0)
             {
                 numbers[ques[i]].selected(true);
+                circle.setXY(300, 200);
+                circle2.setXY(750, 200);
+                circle.setPos(numbers[0].transform.localPosition);
+                circle2.setPos(new Vector2((numbers[1].transform.localPosition.x+ numbers[2].transform.localPosition.x)/2,numbers[1].transform.localPosition.y));
             }
             else
-            numbers[ques[i]].selected();
+            {
+                circle.setPos(circlePos[i, 0]);
+                circle2.setPos(circlePos[i, 1]);
+                circle.setXY(210,140);
+                circle2.setXY(500, 140);
+                numbers[ques[i]].selected();
+                numbers[near[i,0]].nearFade();
+                numbers[near[i, 1]].nearFade();
+                
+            }
+           
+           
             left.release();
             right.release();
             numbers[ques[i]].setText(quesText[i]);
@@ -591,7 +624,11 @@ public class GameManeger : MonoBehaviour
             setTimer();
             clickerFade(0);
             yield return new WaitWhile(() => !isChange() && !isTimeUp(5));
+            circle.fade();
+            circle2.fade();
             numbers[ques[i]].KillSelect();
+            numbers[near[i, 0]].killNearFade();
+            numbers[near[i, 1]].killNearFade();
             if (isChange())
             {
                 scrollNumber = ques[i];
@@ -612,6 +649,7 @@ public class GameManeger : MonoBehaviour
             scrollNumber = -1;
             yield return new WaitWhile(() => !isPicked && !isTimeUp(5));
             stopFade(1);
+           
         }
        
     }
@@ -626,10 +664,12 @@ public class GameManeger : MonoBehaviour
                 if (i > 0 && i < 3)
                 {
                     numbers[i].setPosition(145 *(int) Mathf.Pow(-1, i), -230);
+                    position[i] = new Vector2(145 * (int)Mathf.Pow(-1, i), -230);
                 }
                 if (i > 2)
                 {
-                    numbers[i].returnOrigin();
+                    
+                    position[i] = numbers[i].returnOrigin();
                 }
             }
 
@@ -669,9 +709,11 @@ public class GameManeger : MonoBehaviour
                 if (i > 0 && i < 3)
                 {
                     numbers[i].setPosition(105 * (int)Mathf.Pow(-1, i), -220);
+                    position[i] = new Vector2(105 * (int)Mathf.Pow(-1, i), -220);
                 }else if (i>0&&i < 6)
                 {
                     numbers[i].setPosition(210 *(i-4) , -340);
+                    position[i] = new Vector2(210 * (i - 4), -340);
                 }
             }
             for(int i = 0; i < operations.Length; i++)
@@ -691,10 +733,27 @@ public class GameManeger : MonoBehaviour
     }
     string concatOpe(int first,int second,string ope)
     {
-        
             return values[first] + ope + values[second];
        
         
+    }
+    string concatOpe(int first, int second, string ope,int index)
+    {
+        if (ope == "+")
+        {
+            circlePos[index, 0] = position[ques[index]];
+            circlePos[index, 1] = new Vector2((position[first].x + position[second].x)/2, position[second].y);
+        }
+        else
+        {
+            circlePos[index, 0] = position[first];
+            circlePos[index, 1] = new Vector2((position[ques[index]].x + position[second].x) /2, position[second].y);
+        }
+        near[index, 0] = first;
+        near[index, 1] = second;
+        return values[first] + ope + values[second];
+
+
     }
     public void sliderOut()
     {
@@ -708,6 +767,8 @@ public class GameManeger : MonoBehaviour
         {
             numbers[i].fadeOut();
             numbers[i].KillSelect();
+            numbers[near[i, 0]].killNearFade();
+            numbers[near[i, 0]].killNearFade();
         }
         for (int i = 0; i < operations.Length; i++)
         {
@@ -748,6 +809,9 @@ public class GameManeger : MonoBehaviour
     }
     void first()
     {
+        
+        circlePos = new Vector2[numbers.Length,2];
+        near = new int[numbers.Length,2];
         pickWaiter = true;
         ques = new int[numbers.Length];
         quesText = new string[numbers.Length];
@@ -755,11 +819,37 @@ public class GameManeger : MonoBehaviour
         {
             ques[i] = -1;
         }
+        position = new Vector2[numbers.Length];
+        for (int i = 0; i < position.Length; i++)
+        {
+            position[i] = numbers[i].transform.localPosition;
+        }
         values = new int[numbers.Length];
         type = 0;
         start = true;
         scrollTemp = new int[2];
         pickStoper = true;
         quesNumber = 0;
+    }
+    void winLoseFade(bool winer)
+    {
+        if (winer)
+        {
+            
+            Sequence winLose = DOTween.Sequence();
+            winLose.Append( win.DOFade(1, .5f));
+            winLose.AppendInterval(.5f);
+            winLose.Append(win.DOFade(0, .5f));
+           
+            
+        }
+        else
+        {
+            Sequence winLose = DOTween.Sequence();
+            winLose.Append(lose.DOFade(1, .5f));
+            winLose.AppendInterval(0.5f);
+            winLose.Append(lose.DOFade(0, .5f));
+            
+        }
     }
 }
