@@ -840,8 +840,6 @@ public class GameManeger : MonoBehaviour
             winLose.Append( win.DOFade(1, .5f));
             winLose.AppendInterval(.5f);
             winLose.Append(win.DOFade(0, .5f));
-           
-            
         }
         else
         {
